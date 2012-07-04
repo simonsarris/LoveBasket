@@ -1,0 +1,278 @@
+<!doctype HTML>
+<html>
+<head>
+<title>Animation Test!</title>
+
+
+<script src="game.js"></script>
+<script src="tile.js"></script>
+
+
+</head>
+<body>
+
+<canvas id="canvas1" width="640" height="480" style="border: 1px solid black;">
+This text is displayed if your browser does not support HTML5 Canvas.
+</canvas>
+
+<div style="font-family: Verdana; font-size: 12px;">
+  <p>Text</p>
+</div>
+
+
+<script>
+
+
+
+var can = document.getElementById('canvas1');
+var ctx = can.getContext('2d');
+
+ctx.translate(100,0); // easier to center
+
+ctx.fillStyle = 'rgba(100,100,100,.2)';
+ctx.fillRect(0,0,32,32);
+
+var gib1 = new Image();
+gib1.src = 'art/grass-gib1.png';
+
+// LEAF1
+
+ctx.beginPath();
+ctx.moveTo(0,0);
+ctx.quadraticCurveTo(20, 70, 90, 60);
+ctx.quadraticCurveTo(60, 100, 10, 90);
+ctx.quadraticCurveTo(120,140, 50, 900);
+
+ctx.strokeStyle = 'red';
+ctx.stroke();
+
+ctx.strokeStyle = 'black';
+
+var result = [];
+flattenQuadraticBezier(0,0, 20,70, 90, 60, result, 0.5);
+flattenQuadraticBezier(90, 60, 20, 100, 10, 90, result, 0.5);
+flattenQuadraticBezier(10, 90, 120,140, 50, 900, result, 0.5);
+
+roundArray(result);
+printArray(result);
+
+
+// LEAF2
+
+ctx.beginPath();
+ctx.moveTo(22,10);
+ctx.quadraticCurveTo(6, 37, -27, 37);
+ctx.quadraticCurveTo(-7, 54, 27, 53);
+ctx.quadraticCurveTo(17, 120, -21, 147);
+ctx.quadraticCurveTo(19, 186, 19, 900);
+ctx.stroke();
+
+var result = [];
+flattenQuadraticBezier(22,10, 6, 37, -27, 37, result, 0.5);
+flattenQuadraticBezier(-27, 37, -7, 54, 27, 53, result, 0.5);
+flattenQuadraticBezier(27, 53, 17, 120, -21, 147, result, 0.4);
+flattenQuadraticBezier(-21, 147, 19, 186, 19, 900, result, 0.4);
+roundArray(result);
+printArray(result);
+
+// LEAF3
+
+ctx.beginPath();
+ctx.moveTo(5, 25);
+ctx.quadraticCurveTo(13, 33, 42, 35);
+ctx.quadraticCurveTo(33, 94, -14, 113);
+ctx.quadraticCurveTo(119, 186, 119, 900);
+ctx.stroke();
+
+var result = [];
+flattenQuadraticBezier(5, 25, 13, 33, 42, 35, result, 0.3);
+flattenQuadraticBezier(42, 35, 33, 94, -14, 113, result, 0.4);
+flattenQuadraticBezier(-14, 113, 119, 186, 119, 900, result, 0.4);
+roundArray(result);
+printArray(result);
+
+// LEAF3
+
+ctx.beginPath();
+ctx.moveTo(9, 14);
+ctx.quadraticCurveTo(6, 80, -19, 87);
+ctx.quadraticCurveTo(14, 112, 76, 111);
+ctx.quadraticCurveTo(119, 186, 119, 900);
+ctx.stroke();
+
+var result = [];
+flattenQuadraticBezier(9, 14, 6, 80, -19, 87, result, 0.3);
+flattenQuadraticBezier(-19, 87, 14, 112, 76, 111, result, 0.3);
+flattenQuadraticBezier(76, 111,119, 186, 119, 900, result, 0.4);
+roundArray(result);
+printArray(result);
+
+
+
+// THE REST
+
+var l = result.length;
+ctx.fillStyle = 'red';
+for (var i = 0; i < l; i++) {
+    var pt = result[i];
+    ctx.fillRect(pt[0], pt[1], 2, 2);
+    //ctx.drawImage(gib1, pt[0], pt[1]);
+}
+
+var i = 0;
+/*
+var inter = setInterval(function() {
+    ctx.clearRect(0,0,500,500);
+    var pt = result[i];
+    //ctx.fillRect(pt[0], pt[1], 2, 2);
+    ctx.drawImage(gib1, pt[0], pt[1]);
+    i++;
+    if (i == l) clearInterval(inter);
+}, 30);*/
+
+function roundArray(arr) {
+  var l = arr.length;
+  for (var i = 0; i < l; i++) {
+    var pt = arr[i];
+    pt[0] = Math.round(pt[0]);
+    pt[1] = Math.round(pt[1]);
+  }
+}
+
+function printArray(arr) {
+  var str = '';
+  var l = arr.length;
+  for (var i = 0; i < l; i++) {
+    var pt = arr[i];
+    str += '[' + pt.toString() + '], ';
+    //console.log('[' + pt.toString() + '],');
+  }
+  console.log(str);
+}
+
+
+function flattenQuadraticBezier(sx, sy, cx, cy, ex, ey, result, epsilon) {
+    if (!lineContainsPoint(sx, sy, ex, ey, epsilon, cx, cy)) {
+      var ax = (sx + cx) / 2;
+      var ay = (sy + cy) / 2;
+      var bx = (cx + ex) / 2;
+      var by = (cy + ey) / 2;
+      var mx = (ax + bx) / 2;
+      var my = (ay + by) / 2;
+      flattenQuadraticBezier(sx, sy, ax, ay, mx, my, result, epsilon);
+      flattenQuadraticBezier(mx, my, bx, by, ex, ey, result, epsilon);
+    } else {
+      result.push([cx, cy]);
+    }
+  }
+      
+      
+  // See if P is near the line [A,B]
+  function lineContainsPoint(ax, ay, bx, by, fuzz, px, py) {
+    if (fuzz <= 0) fuzz = 0.000001;
+    var maxx, minx, maxy, miny;
+    if (ax < bx) {
+      minx = ax;
+      maxx = bx;
+    } else {
+      minx = bx;
+      maxx = ax;
+    }
+    if (ay < by) {
+      miny = ay;
+      maxy = by;
+    } else {
+      miny = by;
+      maxy = ay;
+    }
+
+    // ??? added fuzz to fix mitering error on corner. Older version is /* */ below.
+    // do simple vertical and horizontal cases first,
+    // without fuzz beyond the endpoints
+    if (ax === bx) {
+      return (miny - fuzz <= py && py <= maxy + fuzz &&
+              ax - fuzz <= px && px <= ax + fuzz);
+    }
+    if (ay === by) {
+      return (minx - fuzz <= px && px <= maxx + fuzz &&
+              ay - fuzz <= py && py <= ay + fuzz);
+    }
+    // if we're in the x-range, including fuzz,
+    var xrange_high = maxx + fuzz;
+    var xrange_low = minx - fuzz;
+    if ((xrange_low <= px) && (px <= xrange_high)) {
+
+      // and if we're in the y-range
+      var yrange_high = maxy + fuzz;
+      var yrange_low = miny - fuzz;
+      if ((yrange_low <= py) && (py <= yrange_high)) {
+
+        // see if we should compute the X coordinate or Y coordinate
+        if (xrange_high - xrange_low > yrange_high - yrange_low) {
+          if (ax - bx > fuzz || bx - ax > fuzz) {
+            var slope = (by - ay) / (bx - ax);
+            var guess_y = (slope * (px - ax) + ay);
+
+            if ((guess_y - fuzz <= py) && (py <= guess_y + fuzz)) {
+              return true;
+            }
+          } else {
+            return true;
+          }
+        } else {
+          if (ay - by > fuzz || by - ay > fuzz) {
+            var slope = (bx - ax) / (by - ay);
+            var guess_x = (slope * (py - ay) + ax);
+
+            if ((guess_x - fuzz <= px) && (px <= guess_x + fuzz)) {
+              return true;
+            }
+          } else {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  } //end lineContainsPoint
+
+
+
+  var stylePaddingLeft, stylePaddingTop, styleBorderLeft, styleBorderTop;
+  _stylePaddingLeft = parseInt(document.defaultView.getComputedStyle(can, null)['paddingLeft'], 10)      || 0;
+  _stylePaddingTop  = parseInt(document.defaultView.getComputedStyle(can, null)['paddingTop'], 10)       || 0;
+  _styleBorderLeft  = parseInt(document.defaultView.getComputedStyle(can, null)['borderLeftWidth'], 10)  || 0;
+  _styleBorderTop   = parseInt(document.defaultView.getComputedStyle(can, null)['borderTopWidth'], 10)   || 0;
+  // <html> can have a margin (typically seen with position:fixed bars)
+  var html = document.body.parentNode;
+  var _htmlTop = html.offsetTop;
+  var _htmlLeft = html.offsetLeft;
+  
+can.addEventListener('click',function(e) {
+  var element = can, offsetX = 0, offsetY = 0, mx, my;
+ 
+  // Compute the total offset
+  if (element.offsetParent !== undefined) {
+    do {
+      offsetX += element.offsetLeft;
+      offsetY += element.offsetTop;
+    } while ((element = element.offsetParent));
+  }
+ 
+  // Add padding and border style widths to offset
+  // Also add the <html> offsets in case there's a position:fixed bar
+  offsetX += _stylePaddingLeft + _styleBorderLeft + _htmlLeft;
+  offsetY += _stylePaddingTop + _styleBorderTop + _htmlTop;
+ 
+  mx = e.pageX - offsetX;
+  my = e.pageY - offsetY;
+  console.log(mx-100 +', '+ my);
+  return {x: mx, y: my};
+}, false);
+
+  
+  </script>
+
+</body>
+</html>
+
